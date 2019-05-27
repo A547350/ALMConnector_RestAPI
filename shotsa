@@ -1,0 +1,286 @@
+package screencapturetool;
+
+import java.awt.AWTException;
+import java.awt.BorderLayout;
+import java.awt.Desktop;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.util.Units;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+public class uicreation{
+static JFrame frame;
+static JMenuBar menubar;
+static JMenu menu1; 
+static JMenu menu2; 
+static JPanel panel1;
+static JPanel panel2;
+static JButton btnPrintScreen,btnAdd;
+static JButton btnAddText;
+static JTextField texttoAdd;
+static JMenuItem menuItem_New,menuItem_Close,menuItem_Save;
+static XWPFDocument docx;
+static XWPFRun run;
+static FileOutputStream out;
+static boolean filestatus;
+
+public static void main(String[] args) {
+try
+{
+//Lable for Help
+JLabel label = new JLabel("© Powered By Wellmark Automation");
+//Creating the Frame
+frame = new JFrame("Manual Screen Capture");
+filestatus =false;
+frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+frame.setSize(400, 300);
+//Creating the Menu Bar
+//MenuBar
+menubar = new JMenuBar();
+//Menu
+menu1 = new JMenu("FILE");
+menu2 = new JMenu("Help!");
+//MenuItem
+menuItem_New = new JMenuItem("New");
+menuItem_Save = new JMenuItem("Save");
+menuItem_Close = new JMenuItem("Close");
+//Menu added with menu item
+menu1.add(menuItem_New);
+menu1.add(menuItem_Save);
+menu1.add(menuItem_Close);
+//Menu bar added with Menu
+menubar.add(menu1);
+menubar.add(menu2);
+//Creating Pannel
+panel1 = new JPanel();
+panel2 = new JPanel();
+//Button to take screenshort
+btnPrintScreen = new JButton("PrntScr");
+btnAddText = new JButton("AddText");
+btnAdd = new JButton("Add");
+//Text box
+texttoAdd = new JTextField(20);
+//Adding Components in panel
+panel1.add(btnPrintScreen);
+panel1.add(btnAddText);
+panel2.add(texttoAdd);
+panel2.add(btnAdd);
+//Adding a components which is created to the Frame
+frame.getContentPane().add(BorderLayout.CENTER, panel1);
+frame.getContentPane().add(BorderLayout.BEFORE_LINE_BEGINS, panel2);
+frame.getContentPane().add(BorderLayout.NORTH, menubar);
+frame.getContentPane().add(BorderLayout.AFTER_LAST_LINE, label);
+frame.setVisible(true);
+frame.setLocationRelativeTo(null);
+
+
+frame.setResizable(false);
+//frame.setDefaultCloseOperation(1);
+panel1.setVisible(false);
+panel2.setVisible(false);
+menuItem_Save.setEnabled(false);
+menuItem_Close.setEnabled(false);
+//methods to be performed
+addTextToWord();
+saveFile();
+startApplication();
+quiteApplication();
+toGetVisibleOfTextBox();
+printScreen();
+}
+catch(Exception e)
+{
+System.out.println(e.getMessage());
+}
+
+}
+//Method to take screenshot and place in a path with image format
+public static void printScreen()
+{
+//Action Listener
+btnPrintScreen.addActionListener(new ActionListener() 
+{
+@Override
+public void actionPerformed(ActionEvent e) {
+//JOptionPane.showMessageDialog(null, "Clicked", "Print Screen", 1);
+try {
+ 
+frame.setVisible(false);
+            Thread.sleep(200); 
+            Robot r = new Robot(); 
+  
+            // It saves screenshot to desired path 
+            String path = System.getProperty("user.dir") + "\\File"+ System.currentTimeMillis() +".png"; 
+  
+            // Used to get ScreenSize and capture image 
+            Rectangle capture =  
+            new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()); 
+            BufferedImage Image = r.createScreenCapture(capture);
+            File file = new File(path);
+            ImageIO.write(Image, "jpg", new File(path)); 
+            //System.out.println("Screenshot saved");
+            InputStream pic = new FileInputStream(path);
+            run.addBreak();
+            run.addPicture(pic, XWPFDocument.PICTURE_TYPE_PNG, path, Units.toEMU(500), Units.toEMU(350));
+            pic.close();
+            file.delete();
+            
+
+
+
+            frame.setVisible(true);
+        } 
+        catch (AWTException | IOException | InterruptedException ex) { 
+            System.out.println(ex); 
+        } catch (InvalidFormatException e1) {
+// TODO Auto-generated catch block
+e1.printStackTrace();
+} 
+}
+});  
+}
+public static void toGetVisibleOfTextBox()
+{
+btnAddText.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent e) {
+panel1.setVisible(false);
+panel2.setVisible(true);
+texttoAdd.getText();
+}
+});
+}
+static void quiteApplication()
+{
+menuItem_Close.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent e) {
+//JOptionPane.showMessageDialog(null, "Save Before closing?", "Print Screen", 1);
+int result = 0;
+if(filestatus==true)
+{
+frame.dispose();
+}
+else
+{
+result = JOptionPane.showConfirmDialog(null, "Save Before closing?","alert", JOptionPane.OK_CANCEL_OPTION);
+}
+if(result==0)
+{
+}
+else
+{
+frame.dispose();
+}
+}
+});
+}
+static void startApplication()
+{
+menuItem_New.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent e) {
+try
+{
+//JOptionPane.showMessageDialog(null, "Here we go...!");
+//File wordFile = File.createTempFile("word", ".doc",new File("C:\\Users\\dell\\Documents\\screen"));
+String FileName = qualityOfFileName();
+//Word Document
+panel1.setVisible(true);
+menuItem_Save.setEnabled(true);
+menuItem_Close.setEnabled(true);
+docx = new XWPFDocument();
+run = docx.createParagraph().createRun();
+//FileOutputStream out = new FileOutputStream("C:\\Users\\dell\\Documents\\screen\\word.doc");
+out = new FileOutputStream(new File(FileName + ".docx"));
+}
+catch(Exception exception)
+{
+System.out.println(exception.getMessage());
+}
+}
+});
+}
+static void saveFile()
+{
+menuItem_Save.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent arg0) {
+// TODO Auto-generated method stub
+try
+{
+docx.write(out);
+            docx.close();
+            filestatus=true;
+            panel1.setVisible(false);
+            menuItem_Close.setEnabled(false);
+            menuItem_Save.setEnabled(false);
+}
+catch(Exception e)
+{
+System.out.println(e.getMessage());
+}
+}
+});
+}
+
+static void addTextToWord()
+{
+btnAdd.addActionListener(new ActionListener() {
+@Override
+public void actionPerformed(ActionEvent arg0) {
+String txt = texttoAdd.getText();
+run.setText(txt);
+panel2.setVisible(false);
+panel1.setVisible(true);
+}
+});
+}
+
+static String qualityOfFileName() 
+{
+//File Name
+String text = JOptionPane.showInputDialog("Enter Your File Name:");
+/*Pattern p = Pattern.compile("[^A-Za-z0-9]");
+    Matcher m = p.matcher(text);
+    boolean b = m.find();
+    
+if(text.trim().equals(null) || text.trim().isEmpty() || !b)
+{
+if(JOptionPane.showConfirmDialog(frame, "File name is Blank...!") == JOptionPane.DEFAULT_OPTION)
+{
+text = JOptionPane.showInputDialog("Enter Your File Name:");
+}
+}*/
+return text;
+}
+}
+
